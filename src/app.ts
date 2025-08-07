@@ -1,8 +1,10 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
+import swaggerUi from 'swagger-ui-express';
 import userRoutes from './routes/userRoutes';
 import { errorHandler } from './middlewares/errorHandler';
 import logger from './utils/logger';
+import { specs } from './config/swagger';
 
 const app = express();
 
@@ -37,6 +39,28 @@ app.use(rateLimitConfig);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Swagger documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
+    explorer: true,
+    customSiteTitle: 'TypeScript Express Boilerplate API'
+}));
+
+// Swagger JSON endpoint
+app.get('/swagger.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(specs);
+});
+
+/**
+ * @swagger
+ * /health:
+ *   get:
+ *     summary: Health check
+ *     tags: [Health]
+ *     responses:
+ *       200:
+ *         description: Server is healthy
+ */
 // Health check endpoint
 app.get('/health', (req, res) => {
     res.status(200).json({
